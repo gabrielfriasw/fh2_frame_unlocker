@@ -94,8 +94,21 @@ def build_patch(fps):
 
 
 def config_values(path):
+    raw = Path(path).read_bytes()
+    # Check the four-byte BOMs first: UTF-32 LE starts with UTF-16 LE's BOM.
+    if raw.startswith((b"\xff\xfe\x00\x00", b"\x00\x00\xfe\xff")):
+        encoding = "utf-32"
+    elif raw.startswith((b"\xff\xfe", b"\xfe\xff")):
+        encoding = "utf-16"
+    else:
+        encoding = "utf-8-sig"
+    try:
+        text = raw.decode(encoding)
+    except UnicodeDecodeError as exc:
+        raise RuntimeError(f"Cannot read configuration {path}: expected UTF-8 or Unicode with a byte-order mark.") from exc
+    require("\x00" not in text, "Configuration contains null characters; UTF-16/32 files need a byte-order mark.")
     pairs = {}
-    for line in path.read_text(encoding="utf-8-sig").splitlines():
+    for line in text.splitlines():
         if line.strip().startswith(("#", ";", "[")) or "=" not in line:
             continue
         key, value = line.split("=", 1)

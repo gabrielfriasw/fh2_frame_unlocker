@@ -1,21 +1,11 @@
-# v1.0 — FH2 FPS Unlocker
+# v1.0.1 — INI encoding fix
 
-Download **fh2-fps-unlocker-v1.0-windows.zip**, extract it and open
-**FH2-FPS-Unlocker.exe**. Select your existing azimuth.exe once, then use the
-original Frame rate selector. The launcher remembers the installation.
+Fixed the startup error `utf-8 codec cannot decode byte 0xff in position 0` when reading a UTF-16 azimuth.ini.
 
-- Uses the selected installation and its saves directly.
-- No Python installation required for the Windows package.
-- No additional Azimuth installation is created.
-- Save backups before launch; executable patches remain memory-only.
-- Limits: 30, 60, 90, 120, 144, 165, 180 and 200 FPS.
-- Exact supported Azimuth/game hashes are required.
+The launcher now detects Unicode byte-order marks and reads UTF-8, UTF-16 LE/BE and UTF-32 LE/BE without rewriting the INI. No manual conversion is needed.
 
-Existing configuration and save progress remain in the selected installation.
-Users upgrading from the previous preview must select Azimuth again. No previous
-profiles or saves are deleted or migrated automatically.
+Download **fh2-fps-unlocker-v1.0.1-windows.zip**, extract it and use the new **FH2-FPS-Unlocker.exe**. Existing installation preferences and saves are retained.
 
-Start at 90 FPS and validate 120 before higher rates.
-The 180-cap prototype previously crashed; higher-rate stability and full
-simulation correctness remain unverified. See README.md for measured results.
-I tested the mod on my PC. I have not fully validated sustained performance at higher limits or every part of the simulation.
+Validation: 13 automated tests passed. The packaged executable passed its GUI/module self-test and profile verification with a UTF-16 INI; the INI stayed byte-for-byte unchanged.
+
+This fix does not add support for other executable builds or establish DLC-launcher compatibility. Existing exact-build checks and high-FPS testing limitations still apply.

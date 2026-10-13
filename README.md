@@ -12,7 +12,7 @@ Experimental preview · Windows x64 · MIT-licensed mod source
 
 [Getting started](#getting-started) · [Test results](#test-results) · [Troubleshooting](#troubleshooting) · [Technical notes](TECHNICAL.md)
 
-**[Download v1.0](https://github.com/gabrielfriasw/fh2_frame_unlocker/releases/tag/v1.0)** — choose `fh2-fps-unlocker-v1.0-windows.zip` under Assets. No Python installation needed.
+**[Download v1.0.1](https://github.com/gabrielfriasw/fh2_frame_unlocker/releases/tag/v1.0.1)** — choose `fh2-fps-unlocker-v1.0.1-windows.zip` under Assets. No Python installation needed.
 
 </div>
 
@@ -28,7 +28,7 @@ Adds 30, 60, 90, 120, 144, 165, 180 and 200 FPS to Azimuth's original **Frame ra
 
 ## Getting started
 
-1. Download **fh2-fps-unlocker-v1.0-windows.zip** from the release and extract it.
+1. Download **fh2-fps-unlocker-v1.0.1-windows.zip** from the release and extract it.
 2. Save and close Azimuth, then open **FH2-FPS-Unlocker.exe**.
 3. On first launch, select your existing **azimuth.exe**. Its game folder must already be configured in Azimuth.
 4. Choose **Frame rate** in the original interface and start the game. Begin testing at 90 FPS.
@@ -71,6 +71,8 @@ Before each launch, saves are backed up under `%LOCALAPPDATA%/FH2FPSUnlocker/pro
 The mod uses the installation you selected. To restore a save, close Azimuth, preserve its current `data/saves` directory, and restore the chosen backup's `saves` directory there.
 
 To stop using the mod, close it and start Azimuth normally. Executable patches disappear when the process exits. FPS choices saved in Azimuth's configuration remain; select 30 or 60 in the normal interface. Setup does not rewrite the installation's configuration or executable files.
+
+Configuration files in UTF-8 and BOM-marked UTF-16/UTF-32 are read automatically; no manual conversion is needed.
 
 ## Troubleshooting
 
