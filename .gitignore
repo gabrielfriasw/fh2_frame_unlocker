@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+build/
+dist/
+*.spec
+*.log
+*.dmp
+profile/
+runtime/
+save-backups/
+journals/

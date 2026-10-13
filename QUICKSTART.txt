@@ -1,0 +1,8 @@
+FH2 FPS Unlocker
+
+Close Azimuth first, then:
+
+Open FH2-FPS-Unlocker.exe > select azimuth.exe > choose your FPS > enjoy!
+
+Next time, just open FH2-FPS-Unlocker.exe. Your selection is remembered.
+No Python installation needed. Uses your existing installation and saves.
