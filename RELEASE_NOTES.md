@@ -18,4 +18,4 @@ profiles or saves are deleted or migrated automatically.
 Start at 90 FPS and validate 120 before higher rates.
 The 180-cap prototype previously crashed; higher-rate stability and full
 simulation correctness remain unverified. See README.md for measured results.
-The author reports having tested the mod. Sustained high-rate performance and complete simulation correctness remain incompletely validated.
+I tested the mod on my PC. I have not fully validated sustained performance at higher limits or every part of the simulation.

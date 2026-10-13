@@ -6,13 +6,13 @@
 
 Choose your frame-rate limit from the original Azimuth interface.
 
-**30 Â· 60 Â· 90 Â· 120 Â· 144 Â· 165 Â· 180 Â· 200 FPS**
+**30 · 60 · 90 · 120 · 144 · 165 · 180 · 200 FPS**
 
-Experimental preview Â· Windows x64 Â· MIT-licensed mod source
+Experimental preview · Windows x64 · MIT-licensed mod source
 
-[Getting started](#getting-started) Â· [Test results](#test-results) Â· [Troubleshooting](#troubleshooting) Â· [Technical notes](TECHNICAL.md)
+[Getting started](#getting-started) · [Test results](#test-results) · [Troubleshooting](#troubleshooting) · [Technical notes](TECHNICAL.md)
 
-**[Download v1.0](https://github.com/gabrielfriasw/fh2_frame_unlocker/releases/tag/v1.0)** â€” choose `fh2-fps-unlocker-v1.0-windows.zip` under Assets. No Python installation needed.
+**[Download v1.0](https://github.com/gabrielfriasw/fh2_frame_unlocker/releases/tag/v1.0)** — choose `fh2-fps-unlocker-v1.0-windows.zip` under Assets. No Python installation needed.
 
 </div>
 
@@ -20,7 +20,7 @@ Experimental preview Â· Windows x64 Â· MIT-licensed mod source
 
 ![Forza Horizon 2 running in Azimuth with the performance overlay showing 144 FPS](docs/images/fh2-gameplay-144-fps.png)
 
-*In-game screenshot supplied by the tester. The overlay reads 144 FPS at this moment; this is not a sustained-performance benchmark.*
+*A screenshot from my game. The overlay reads 144 FPS at this moment; this is not a sustained-performance benchmark.*
 
 ## What it does
 
@@ -49,12 +49,12 @@ Source users can run `python unlock.py` with 64-bit Python and Tkinter. Developm
 
 ## Test results
 
-These measurements come from **earlier fixed-limit prototypes on one PC**, using 90-second capture windows. They are not benchmarks of the newly integrated selector.
+I captured these measurements on **my PC with earlier fixed-limit prototypes**, using 90-second capture windows. They are not benchmarks of the newly integrated selector.
 
 | Selected limit | Average presentations/s | Observed behavior |
 |---|---:|---|
-| 60 FPS | 59.96 | Tester reported normal driving |
-| 90 FPS | 89.47 | Tester reported stable driving |
+| 60 FPS | 59.96 | Driving felt normal to me |
+| 90 FPS | 89.47 | Driving felt stable to me |
 | 180 FPS | 110.69 | A later crash reported `D3D12 DEVICE_HUNG` (`0x887a0006`) |
 | 200 FPS | 137.48 | No crash during the capture at 1080p/low; 33 dropped presentations |
 
@@ -62,7 +62,7 @@ These measurements come from **earlier fixed-limit prototypes on one PC**, using
 
 The cause of the 180 FPS crash has not been established. Neither 180 nor 200 FPS is considered validated stable. Dedicated driving tests at 120, 144 and 165 FPS remain outstanding, and physics, AI, animations and events have not been exhaustively validated at higher rates.
 
-For the integrated preview, seven automated instruction-emulation test methods passed, and all additional choices were confirmed visible in the original UI. Those checks do not replace in-game testing.
+For the integrated preview, seven automated instruction-emulation test methods passed, and I confirmed all additional choices appeared in the original UI. Those checks do not replace in-game testing.
 
 ## Saves and reverting
 

@@ -1,4 +1,4 @@
-# Technical evidence â€” native selector preview
+# Technical evidence — native selector preview
 
 ## Supported artifacts
 
@@ -21,7 +21,7 @@ Addresses below are wrapper RVAs unless stated otherwise. Static preferred image
 | `0xd23c` | Original callback persistence continuation, with row index in EDI |
 | `0x5e650` | Native persistence routine; case 5 writes integer frame_rate, case 6 writes pacing |
 | `0x5d810` | Settings parser originally accepts only 30/60 |
-| `0x5dd80`, 15 bytes | Parser hook validates a 2â€“3 digit whitelisted FPS value; resumes at 0x5de4c |
+| `0x5dd80`, 15 bytes | Parser hook validates a 2–3 digit whitelisted FPS value; resumes at 0x5de4c |
 | `0x5df95`, 14 bytes | Parser hook enforces real-time above 60 after pacing parsing, preserving cleanup paths |
 | `0x35e90` | Presentation/pacing routine containing the original limiter |
 | `0x3613d`, 70 bytes | Replaced period calculation reads the selected FPS global and calculates QPF/FPS |
@@ -40,7 +40,7 @@ The launcher checks exact executable hashes and registers the selected installat
 
 Seven instruction-emulation test methods passed, including selection in both directions, all supported rates, invalid-value fallback, low/high-rate pacing behavior, parser storage forms, cleanup branches and ASLR relocation. These tests do not replace execution in the real application.
 
-A live process accepted all guarded patches and resumed; the tester confirmed every extra choice appears in the existing UI. Integrated gameplay and close/reopen persistence validation remain pending. Earlier fixed-limit capture results are in README.md and must not be presented as full validation of this revision.
+A live process accepted all guarded patches and resumed; I confirmed every extra choice appears in the existing UI. Integrated gameplay and close/reopen persistence validation remain pending. Earlier fixed-limit capture results are in README.md and must not be presented as full validation of this revision.
 
 ## Analysis provenance
 
