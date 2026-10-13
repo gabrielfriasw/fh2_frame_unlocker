@@ -12,7 +12,7 @@ Experimental preview Â· Windows x64 Â· MIT-licensed mod source
 
 [Getting started](#getting-started) Â· [Test results](#test-results) Â· [Troubleshooting](#troubleshooting) Â· [Technical notes](TECHNICAL.md)
 
-**[Download the Windows preview](https://github.com/gabrielfriasw/fh2_frame_unlocker/releases/tag/v0.1.0-preview.2)** â€” choose `fh2-fps-unlocker-windows-preview.zip` under Assets. No Python installation needed.
+**[Download v1.0](https://github.com/gabrielfriasw/fh2_frame_unlocker/releases/tag/v1.0)** â€” choose `fh2-fps-unlocker-v1.0-windows.zip` under Assets. No Python installation needed.
 
 </div>
 
@@ -28,7 +28,7 @@ Adds 30, 60, 90, 120, 144, 165, 180 and 200 FPS to Azimuth's original **Frame ra
 
 ## Getting started
 
-1. Download **fh2-fps-unlocker-windows-preview.zip** from the release and extract it.
+1. Download **fh2-fps-unlocker-v1.0-windows.zip** from the release and extract it.
 2. Save and close Azimuth, then open **FH2-FPS-Unlocker.exe**.
 3. On first launch, select your existing **azimuth.exe**. Its game folder must already be configured in Azimuth.
 4. Choose **Frame rate** in the original interface and start the game. Begin testing at 90 FPS.
