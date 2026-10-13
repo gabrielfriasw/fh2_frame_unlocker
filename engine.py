@@ -1,4 +1,4 @@
-"""Exact-build, process-only frame pacing patch. No game code is distributed."""
+"""Region-guarded, process-only frame pacing patch. No game code is distributed."""
 from __future__ import annotations
 import ctypes
 from ctypes import wintypes as W
@@ -62,24 +62,66 @@ def tree_hashes(root):
     return {str(p.relative_to(root)): sha256(p) for p in files_in(root)}
 
 
-def pe_bytes_at_rva(path, rva, size):
+def pe_image(path):
     data = Path(path).read_bytes()
-    require(data[:2] == b"MZ", "Assinatura DOS invÃ¡lida.")
+    require(len(data) >= 64 and data[:2] == b"MZ", "Invalid or truncated DOS header.")
     pe = struct.unpack_from("<I", data, 0x3C)[0]
-    require(data[pe:pe + 4] == b"PE\0\0", "Assinatura PE invÃ¡lida.")
+    require(pe >= 64 and pe + 24 <= len(data) and data[pe:pe + 4] == b"PE\0\0", "Invalid or truncated PE header.")
     machine, count = struct.unpack_from("<HH", data, pe + 4)
     optional_size = struct.unpack_from("<H", data, pe + 20)[0]
-    require(machine == 0x8664 and struct.unpack_from("<H", data, pe + 24)[0] == 0x20B,
-            "O patch exige PE32+ AMD64.")
+    require(optional_size >= 112 and pe + 24 + optional_size <= len(data), "Truncated PE optional header.")
+    require(machine == 0x8664 and struct.unpack_from("<H", data, pe + 24)[0] == 0x20B, "Windows x64 PE32+ is required.")
+    image_size = struct.unpack_from("<I", data, pe + 24 + 56)[0]
+    require(image_size > 0, "Invalid PE image size.")
     sections = pe + 24 + optional_size
+    require(0 < count <= 96 and sections + count * 40 <= len(data), "Invalid or truncated PE section table.")
+    layout = []
     for i in range(count):
         entry = sections + i * 40
-        _, virtual_address, raw_size, raw_offset = struct.unpack_from("<IIII", data, entry + 8)
-        if virtual_address <= rva and rva + size <= virtual_address + raw_size:
-            offset = raw_offset + rva - virtual_address
-            require(offset + size <= len(data), "SeÃ§Ã£o truncada.")
-            return data[offset:offset + size], offset
-    raise RuntimeError("RVA nÃ£o coberto integralmente por uma seÃ§Ã£o com bytes em disco.")
+        virtual_size, virtual_address, raw_size, raw_offset = struct.unpack_from("<IIII", data, entry + 8)
+        flags = struct.unpack_from("<I", data, entry + 36)[0]
+        require(not raw_size or raw_offset + raw_size <= len(data), "Truncated PE section data.")
+        layout.append({"rva": virtual_address, "virtual_size": max(virtual_size, raw_size),
+                       "raw_size": raw_size, "offset": raw_offset, "flags": flags})
+    return data, layout, image_size
+
+
+def region_bytes(image, rva, size, executable=False):
+    data, sections, image_size = image
+    require(rva >= 0 and size > 0 and rva + size <= image_size, "Patch region is outside the PE image.")
+    matches = [s for s in sections if s["rva"] <= rva and rva + size <= s["rva"] + s["raw_size"]]
+    require(len(matches) == 1, "Patch RVA is not covered by exactly one file-backed section.")
+    section = matches[0]
+    require(not executable or section["flags"] & 0x20000000, "Patch target is not in an executable section.")
+    offset = section["offset"] + rva - section["rva"]
+    return data[offset:offset + size], offset
+
+
+def pe_bytes_at_rva(path, rva, size):
+    return region_bytes(pe_image(path), rva, size)
+
+
+def guarded_regions():
+    import native_patches as n, parser_patches as p
+    return (("frame pacing", PATCH_RVA, EXPECTED),
+            ("native FPS selector", n.FPS_RVA, n.FPS_ORIGINAL),
+            ("native pacing selector", n.PACING_RVA, n.PACING_ORIGINAL),
+            ("saved FPS parser", p.PARSER_RVA, p.PARSER_EXPECTED),
+            ("saved pacing parser", p.PACING_RVA, p.PACING_EXPECTED))
+
+
+def validate_patch_regions(exe):
+    image = pe_image(exe)
+    verified = []
+    for name, rva, expected in guarded_regions():
+        actual, offset = region_bytes(image, rva, len(expected), executable=True)
+        if actual != expected:
+            difference = next(i for i, pair in enumerate(zip(actual, expected)) if pair[0] != pair[1])
+            raise RuntimeError(f"Patch conflict in {name} at RVA 0x{rva + difference:x}. "
+                               f"Expected {expected[difference]:02x}, found {actual[difference]:02x}. "
+                               "Another patch overlaps this region, or the executable layout is unsupported. No changes applied.")
+        verified.append({"name": name, "rva": hex(rva), "size": len(expected), "file_offset": hex(offset)})
+    return verified
 
 
 def build_patch(fps):
@@ -120,6 +162,7 @@ def config_values(path):
 
 def patch_suspended(runtime, journal, journal_path):
     import parser_patches, native_patches
+    from child_launch import external_dll_search
     baseline = False
     expected, replacement = EXPECTED, parser_patches.dynamic_pacing()
     kernel = ctypes.WinDLL("kernel32", use_last_error=True)
@@ -168,8 +211,10 @@ def patch_suspended(runtime, journal, journal_path):
     resumed = False
     try:
         command = ctypes.create_unicode_buffer(subprocess.list2cmdline([str(runtime / "azimuth.exe")]))
-        wincheck(create(str(runtime / "azimuth.exe"), command, None, None, False, 0x4, None,
-                        str(runtime), ctypes.byref(si), ctypes.byref(pi)), "CreateProcessW suspended")
+        with external_dll_search() as reset:
+            wincheck(create(str(runtime / "azimuth.exe"), command, None, None, False, 0x4, None,
+                            str(runtime), ctypes.byref(si), ctypes.byref(pi)), "CreateProcessW suspended")
+            journal["external_dll_search_reset"] = reset
         journal.update(pid=pi.dwProcessId, status="suspended")
 
         def rpm(address, count):
@@ -184,7 +229,9 @@ def patch_suspended(runtime, journal, journal_path):
         image_base = struct.unpack("<Q", rpm(info.PebBaseAddress + 0x10, 8))[0]
         require(rpm(image_base, 2) == b"MZ", "Image base invÃ¡lida.")
         address = image_base + PATCH_RVA
-        require(rpm(address, len(expected)) == expected, "Bytes na memÃ³ria diferentes do backup; patch recusado.")
+        for name, rva, original in guarded_regions():
+            require(rpm(image_base + rva, len(original)) == original,
+                    f"Patch conflict in memory: {name} at RVA 0x{rva:x}. No changes applied.")
         journal.update(image_base=hex(image_base), patch_va=hex(address), status="bytes_verified")
         write_json(journal_path, journal)
         # Allocate dedicated leaf stubs: no DLL injection, no persistent EXE changes.
@@ -285,9 +332,12 @@ def detect_game(source):
 def inspect_installation(exe, game):
     exe, game = Path(exe).resolve(), Path(game).resolve()
     require(exe.name.lower() == "azimuth.exe" and exe.is_file(), "Select azimuth.exe.")
-    require(sha256(exe) == WRAPPER_SHA, "Unsupported Azimuth build. No files were patched.")
-    require(sha256(game / "Mount" / GAME_NAME) == GAME_SHA, "Unsupported or missing FH2 game executable.")
-    require(pe_bytes_at_rva(exe, PATCH_RVA, PATCH_SIZE)[0] == EXPECTED, "Unexpected pacing instructions.")
+    validate_patch_regions(exe)
+    game_exe = game / "Mount" / GAME_NAME
+    require(game_exe.is_file(), "Missing FH2 game executable.")
+    # The unlocker patches Azimuth only. Azimuth owns game loading/validation;
+    # unrelated on-disk game mods must not be rejected by a whole-file hash.
+    pe_image(game_exe)
     config_values(exe.parent / "data" / "azimuth.ini")
     return exe, game
 
@@ -368,6 +418,7 @@ def validate_profile(workspace):
 
 
 def launch(workspace):
+    import extra_options
     require(os.name == "nt" and ctypes.sizeof(ctypes.c_void_p) == 8, "Windows x64 is required.")
     require(not running_azimuth(), "Save and close Azimuth before launching another session.")
     workspace = Path(workspace).resolve()
@@ -375,9 +426,27 @@ def launch(workspace):
     session = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:8]
     snapshot = snapshot_saves(workspace, session)
     journal = {"session_id": session, "initial_fps": int(values["frame_rate"]), "status": "preflight", "experimental_unverified": True,
-               "wrapper_sha256": WRAPPER_SHA, "game_sha256": GAME_SHA, "runtime_settings": values,
+               "wrapper_sha256": sha256(runtime_path(workspace) / "azimuth.exe"),
+               "game_sha256": sha256(Path(state["game"]) / "Mount" / GAME_NAME), "runtime_settings": values,
+               "compatibility_policy": "exact bytes at five wrapper patch regions; whole-file hashes are diagnostic only",
+               "verified_regions": validate_patch_regions(runtime_path(workspace) / "azimuth.exe"),
                "saves_backup": snapshot, "patch_rva": hex(PATCH_RVA), "expected": EXPECTED.hex(),
-               "selection": "native Azimuth Frame rate row; final selection may differ from initial_fps"}
+               "selection": "native Azimuth Frame rate row; final selection may differ from initial_fps",
+               "extra_options_before_launch": extra_options.inspect(runtime_path(workspace))}
     path = workspace / "journals" / (session + ".json")
     write_json(path, journal)
     return patch_suspended(runtime_path(workspace), journal, path)
+
+
+def compatibility_report(workspace):
+    import extra_options
+    workspace = Path(workspace).resolve()
+    runtime = runtime_path(workspace)
+    report = {"extra_options": extra_options.inspect(runtime),
+              "startup": {"state": "not_observed", "runtime_confirmed": False}}
+    journals = sorted((workspace / "journals").glob("*.json"))
+    if journals:
+        journal = load_json(journals[-1])
+        report["session_id"] = journal.get("session_id")
+        report["startup"] = extra_options.observe_log(runtime, journal.get("extra_options_before_launch"))
+    return report

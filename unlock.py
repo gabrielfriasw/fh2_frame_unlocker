@@ -34,6 +34,7 @@ def main():
     parser.add_argument("--azimuth",type=Path)
     parser.add_argument("--game-folder",type=Path)
     parser.add_argument("--verify",action="store_true",help="Verify profile without launching")
+    parser.add_argument("--compatibility-report",action="store_true",help="Report Extra Options installation and startup log evidence without launching")
     parser.add_argument("--self-test",action="store_true",help="Check bundled GUI and patch modules without starting Azimuth")
     args=parser.parse_args();workspace=args.workspace or default_workspace()
     if args.self_test:
@@ -44,6 +45,18 @@ def main():
         parser_patches.parser_code(0x140000000)
         parser_patches.pacing_parser_code(0x140000000)
         parser_patches.dynamic_pacing()
+        return
+    if args.compatibility_report:
+        import extra_options
+        report=engine.compatibility_report(workspace)
+        path=workspace/"compatibility-report.json"
+        engine.write_json(path,report)
+        summary=extra_options.report_summary(report)+"\n\nReport: "+str(path)
+        if getattr(sys,"frozen",False):
+            import tkinter as tk
+            from tkinter import messagebox
+            root=tk.Tk();root.withdraw();messagebox.showinfo("Extra Options compatibility",summary);root.destroy()
+        else:print(summary)
         return
     if args.prepare:
         engine.require(args.azimuth and args.game_folder and args.workspace,"--prepare requires --azimuth, --game-folder and --workspace")

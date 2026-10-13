@@ -8,11 +8,11 @@ Choose your frame-rate limit from the original Azimuth interface.
 
 **30 · 60 · 90 · 120 · 144 · 165 · 180 · 200 FPS**
 
-Experimental preview · Windows x64 · MIT-licensed mod source
+Version 1.1.0 · Windows x64 · MIT-licensed mod source
 
 [Getting started](#getting-started) · [Test results](#test-results) · [Troubleshooting](#troubleshooting) · [Technical notes](TECHNICAL.md)
 
-**[Download v1.0.1](https://github.com/gabrielfriasw/fh2_frame_unlocker/releases/tag/v1.0.1)** — choose `fh2-fps-unlocker-v1.0.1-windows.zip` under Assets. No Python installation needed.
+**[Download v1.1.0](https://github.com/gabrielfriasw/fh2_frame_unlocker/releases/tag/v1.1.0)** — choose `fh2-fps-unlocker-v1.1.0-windows.zip` under Assets. No Python installation needed.
 
 </div>
 
@@ -28,7 +28,7 @@ Adds 30, 60, 90, 120, 144, 165, 180 and 200 FPS to Azimuth's original **Frame ra
 
 ## Getting started
 
-1. Download **fh2-fps-unlocker-v1.0.1-windows.zip** from the release and extract it.
+1. Download **fh2-fps-unlocker-v1.1.0-windows.zip** from the release and extract it.
 2. Save and close Azimuth, then open **FH2-FPS-Unlocker.exe**.
 3. On first launch, select your existing **azimuth.exe**. Its game folder must already be configured in Azimuth.
 4. Choose **Frame rate** in the original interface and start the game. Begin testing at 90 FPS.
@@ -37,7 +37,7 @@ Next time, open the same unlocker executable. It remembers the installation. No 
 
 Above 60 FPS, real-time pacing is enforced. Other graphics settings are retained; VSync or external limits can restrict achieved FPS.
 
-**Compatibility:** Windows 11 x64, the supported Azimuth 0.9.7 build and FH2 Xbox One 1.0.0.64 executable. Exact hashes are checked; see [TECHNICAL.md](TECHNICAL.md). Other builds are refused. Compatibility with third-party modifications is unverified.
+**Compatibility:** Windows 11 x64, the Azimuth 0.9.7 patch layout and FH2 Xbox One 1.0.0.64. The five regions modified by this tool must match their expected instructions; see [TECHNICAL.md](TECHNICAL.md). Whole-file hashes are diagnostic only. Modifications outside these regions are accepted, but compatibility with every modification is not guaranteed. Extra Options 0.2.34 was tested alongside the unlocker; see [installation and startup checks](docs/EXTRA_OPTIONS.md). Other third-party modifications remain unverified.
 
 To select another installation, run:
 
@@ -62,7 +62,7 @@ I captured these measurements on **my PC with earlier fixed-limit prototypes**, 
 
 The cause of the 180 FPS crash has not been established. Neither 180 nor 200 FPS is considered validated stable. Dedicated driving tests at 120, 144 and 165 FPS remain outstanding, and physics, AI, animations and events have not been exhaustively validated at higher rates.
 
-For the integrated preview, seven automated instruction-emulation test methods passed, and I confirmed all additional choices appeared in the original UI. Those checks do not replace in-game testing.
+The current suite has 25 automated test methods covering patch instructions, INI encodings, save backups, region conflicts and Extra Options diagnostics. I also tested Extra Options 0.2.34 with a selected 90 FPS cap, including Get In Car and live verification of 4K livery patches. These checks do not validate every feature or higher-rate performance.
 
 ## Saves and reverting
 
@@ -78,7 +78,7 @@ Configuration files in UTF-8 and BOM-marked UTF-16/UTF-32 are read automatically
 
 | Problem | What to check |
 |---|---|
-| Unsupported build | Compare the hashes in TECHNICAL.md. Do not bypass the check. |
+| Patch conflict | The error identifies the affected region and RVA. Another mod overlaps our patch, or the executable layout differs. |
 | Game folder not found | Configure the game folder in Azimuth, close it, then retry setup. |
 | Only 30/60 appear | Start through FH2-FPS-Unlocker.exe. |
 | FPS below the selected limit | Check VSync, external caps and hardware load. The limit is a ceiling. |
@@ -130,7 +130,7 @@ python -m unittest discover -s tests -v
 
 Run `Build.cmd` with 64-bit Python installed to build `dist/FH2-FPS-Unlocker.exe`. It uses the pinned PyInstaller dependency and its [one-file, windowed mode](https://www.pyinstaller.org/en/stable/usage.html). Bundled Python and third-party runtime components retain their own licenses.
 
-Read [TECHNICAL.md](TECHNICAL.md) for addresses, evidence and validation limits. Contributions should keep exact-build checks, reversible patching and clear test evidence.
+Read [TECHNICAL.md](TECHNICAL.md) for addresses, evidence and validation limits. Contributions should retain region checks, reversible patching and clear test evidence.
 
 ## Credits and license
 

@@ -2,7 +2,7 @@
 
 ## Supported artifacts
 
-Windows AMD64; Azimuth 0.9.7 and FH2 1.0.0.64. Compatibility is checked by SHA-256, not filenames alone.
+Windows AMD64; Azimuth 0.9.7 and FH2 1.0.0.64. The hashes below identify the original analysis artifacts, not mandatory whole-file matches. Compatibility checks require PE32+ AMD64 and exact original instructions at all five wrapper patch regions. Changes elsewhere are permitted.
 
 * Azimuth: `5d3ce30b440dab2604fe42ff7cd129394f0b98418e22b2a44270f548199bc6a9`
 * Game executable: `3ec04c6163fb5614e3d351ba0570d39b846041a257715d6340eceb03ccb7f0a3`
@@ -34,7 +34,7 @@ The wrapper also controls the game's timestep path. Earlier analysis located wra
 
 ## Safety and lifecycle
 
-The launcher checks exact executable hashes and registers the selected installation without duplicating it. Each launch backs up the selected installation's saves, creates Azimuth suspended, checks every patch site's original bytes, allocates stubs, changes their memory to executable/read-only, patches with readback verification, flushes the instruction cache and resumes. Pre-resume failures terminate only the newly created child. Executables remain unchanged on disk.
+The launcher validates PE format and all five modified code regions, then registers the selected installation without duplicating it. Each launch backs up the selected installation's saves, creates Azimuth suspended, checks every patch site's original bytes, allocates stubs, changes their memory to executable/read-only, patches with readback verification, flushes the instruction cache and resumes. Pre-resume failures terminate only the newly created child. Executables remain unchanged on disk.
 
 ## Validation status
 
@@ -51,3 +51,9 @@ REA/Ghidra evidence records retained privately, excluding proprietary decompilat
 * Label drawing: `ev_71161c7a1d7c340b25ba05a720a01e2182e727e1625e1b25e01fd7428499f415`
 
 Machine-code guards in the source are compatibility signatures for specific patch sites; no complete proprietary binary is distributed.
+
+## Region-based compatibility
+
+The five guarded ranges are 0xd144 (33 bytes), 0xd165 (24 bytes), 0x3613d (70 bytes), 0x5dd80 (15 bytes), and 0x5df95 (14 bytes). Every byte is checked on disk and again in the suspended child before any patch write. Targets must be uniquely mapped to file-backed executable sections. File hashes recorded in journals are the actual observed hashes and do not gate startup. Game PE format is checked; game loading and game patch validation remain owned by Azimuth.
+
+This permits unrelated patches without promising compatibility with unknown builds. Functions, data layouts and continuation addresses are still based on the investigated Azimuth layout; a modification outside the five written ranges can still affect those dependencies. No generic signature relocation is implemented.
